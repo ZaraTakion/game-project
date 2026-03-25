@@ -14,6 +14,19 @@ export function gameReducer(state, action) {
         log: [...state.log, 'Turn started']
       }
     }
+    case 'NEXT_PHASE': {
+        let nextPhase = state.phase
+
+        if (state.phase === 'START') {
+            nextPhase = 'MAIN'
+        }
+
+        return {
+            ...state,
+            phase: nextPhase,
+            log: [...state.log, `Phase changed to ${nextPhase}`]
+        }
+    }
 
     default:
       return state

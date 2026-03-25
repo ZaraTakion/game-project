@@ -7,6 +7,9 @@ function App() {
   const handleStartTurn = () => {
     dispatch({ type: 'START_TURN' })
   }
+  const handleNextPhase = () => {
+  dispatch({ type: 'NEXT_PHASE' })
+  }
 
   return (
     <div>
@@ -18,6 +21,9 @@ function App() {
 
       <button onClick={handleStartTurn}>
         Iniciar Turno
+      </button>
+      <button onClick={handleNextPhase}>
+        Próxima Fase
       </button>
     </div>
   )
