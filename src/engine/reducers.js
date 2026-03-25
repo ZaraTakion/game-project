@@ -1,5 +1,12 @@
 import initialState from './gameEngine'
 
+const ACTION_COST = {
+  PLACE_UNIT: 1,
+  PLAY_CARD: 1,
+  PLACE_FIELD_CARD: 1,
+  PASS_ACTION: 0
+}
+
 function isActionAllowed(state, actionType) {
   const actionsAllowedInMain = [
     'PLACE_UNIT',
@@ -15,11 +22,34 @@ function isActionAllowed(state, actionType) {
   return true
 }
 
+function hasEnoughActionPoints(state, actionType) {
+  const cost = ACTION_COST[actionType]
+
+  if (cost === undefined) return true
+
+  return state.actionPoints >= cost
+}
+
+function consumeActionPoints(state, actionType) {
+  const cost = ACTION_COST[actionType] || 0
+
+  return state.actionPoints - cost
+}
+
 export function gameReducer(state, action) {
+  // Validação de fase
   if (!isActionAllowed(state, action.type)) {
     return {
       ...state,
       log: [...state.log, `Action ${action.type} blocked in phase ${state.phase}`]
+    }
+  }
+
+  // Validação de recursos
+  if (!hasEnoughActionPoints(state, action.type)) {
+    return {
+      ...state,
+      log: [...state.log, `Not enough action points for ${action.type}`]
     }
   }
 
@@ -33,7 +63,8 @@ export function gameReducer(state, action) {
         turn: state.turn + 1,
         phase: 'START',
         activePlayerId: nextPlayer,
-        log: [...state.log, 'Turn started']
+        actionPoints: 2,
+        log: [...state.log, 'Turn started: 2 AP granted']
       }
     }
 
@@ -48,6 +79,37 @@ export function gameReducer(state, action) {
         ...state,
         phase: nextPhase,
         log: [...state.log, `Phase changed to ${nextPhase}`]
+      }
+    }
+
+    case 'PLACE_UNIT': {
+      return {
+        ...state,
+        actionPoints: consumeActionPoints(state, action.type),
+        log: [...state.log, 'Unit placed']
+      }
+    }
+
+    case 'PLAY_CARD': {
+      return {
+        ...state,
+        actionPoints: consumeActionPoints(state, action.type),
+        log: [...state.log, 'Card played']
+      }
+    }
+
+    case 'PLACE_FIELD_CARD': {
+      return {
+        ...state,
+        actionPoints: consumeActionPoints(state, action.type),
+        log: [...state.log, 'Field card placed']
+      }
+    }
+
+    case 'PASS_ACTION': {
+      return {
+        ...state,
+        log: [...state.log, 'Player passed action']
       }
     }
 
