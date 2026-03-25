@@ -24,20 +24,26 @@ function isActionAllowed(state, actionType) {
 
 function hasEnoughActionPoints(state, actionType) {
   const cost = ACTION_COST[actionType]
-
   if (cost === undefined) return true
-
   return state.actionPoints >= cost
 }
 
 function consumeActionPoints(state, actionType) {
   const cost = ACTION_COST[actionType] || 0
-
   return state.actionPoints - cost
 }
 
+function createUnit(ownerId) {
+  return {
+    id: Date.now().toString(),
+    ownerId,
+    basePower: 1000,
+    currentPower: 1000,
+    effects: []
+  }
+}
+
 export function gameReducer(state, action) {
-  // Validação de fase
   if (!isActionAllowed(state, action.type)) {
     return {
       ...state,
@@ -45,7 +51,6 @@ export function gameReducer(state, action) {
     }
   }
 
-  // Validação de recursos
   if (!hasEnoughActionPoints(state, action.type)) {
     return {
       ...state,
@@ -83,10 +88,41 @@ export function gameReducer(state, action) {
     }
 
     case 'PLACE_UNIT': {
+      const { slotIndex } = action.payload
+
+      // validação de slot
+      if (!state.board[slotIndex]) {
+        return {
+          ...state,
+          log: [...state.log, 'Invalid slot']
+        }
+      }
+
+      if (state.board[slotIndex].unit !== null) {
+        return {
+          ...state,
+          log: [...state.log, 'Slot already occupied']
+        }
+      }
+
+      const newUnit = createUnit(state.activePlayerId)
+
+      const newBoard = state.board.map((slot, index) => {
+        if (index === slotIndex) {
+          return {
+            unit: newUnit,
+            ownerId: state.activePlayerId,
+            confrontId: null
+          }
+        }
+        return slot
+      })
+
       return {
         ...state,
+        board: newBoard,
         actionPoints: consumeActionPoints(state, action.type),
-        log: [...state.log, 'Unit placed']
+        log: [...state.log, `Unit placed in slot ${slotIndex}`]
       }
     }
 

@@ -25,6 +25,9 @@ function App() {
       <button onClick={handleNextPhase}>
         Próxima Fase
       </button>
+      <button onClick={() => dispatch({ type: 'PLACE_UNIT', payload: { slotIndex: 0 } })}>
+        Place Unit Slot 0
+      </button>
     </div>
   )
 }
